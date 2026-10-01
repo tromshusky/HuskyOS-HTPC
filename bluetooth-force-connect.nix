@@ -1,4 +1,4 @@
-# This reconnects all paired bluetooth devices all 50s
+# This reconnects all paired bluetooth devices all 30s
 # Intended as a workaround for bluetooth devices that fail to reconnect
 # Originally written for a 4Games BGP-2016 (3rd party ps4 controller)
 
@@ -6,9 +6,8 @@
 
 let
   reconnect = pkgs.writeShellScript "bluetooth-force-connect" ''
-    ${pkgs.bluez}/bin/bluetoothctl paired-devices |
-      ${pkgs.gnugrep}/bin/grep '^Device ' |
-      ${pkgs.gawk}/bin/awk '{print $2}' |
+    ${pkgs.bluez}/bin/bluetoothctl devices Paired |
+      ${pkgs.gnugrep}/bin/grep -oE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}' |
       while read -r mac; do
         ${pkgs.bluez}/bin/bluetoothctl connect "$mac" >/dev/null 2>&1 || true
       done
@@ -26,8 +25,8 @@ in {
     description = "Periodically reconnect paired Bluetooth devices";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnBootSec = "50s";
-      OnUnitActiveSec = "50s";
+      OnBootSec = "30s";
+      OnUnitActiveSec = "30s";
     };
   };
 }
